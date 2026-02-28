@@ -4,6 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Polymarket Dashboard</title>
+  <script>
+    (function () {
+      const key = 'pm_theme';
+      let theme = 'light';
+      try {
+        const saved = localStorage.getItem(key);
+        if (saved === 'dark' || saved === 'light') theme = saved;
+      } catch (_) {}
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
@@ -21,6 +32,7 @@
         <div class="meta-label">Last updated</div>
         <div class="meta-value" id="lastUpdated">—</div>
       </div>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch theme">LIGHT</button>
       <div class="segmented" id="kindFilter">
         <button class="seg active" data-kind="all">All</button>
         <button class="seg" data-kind="macro">Macro</button>

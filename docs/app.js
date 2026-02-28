@@ -1,6 +1,36 @@
 import { CONFIG } from './config.js';
 
 const $ = (sel) => document.querySelector(sel);
+const THEME_KEY = 'pm_theme';
+
+function normalizeTheme(v) {
+  return v === 'dark' ? 'dark' : 'light';
+}
+function currentTheme() {
+  return normalizeTheme(document.documentElement.getAttribute('data-theme'));
+}
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+function applyTheme(theme) {
+  const next = normalizeTheme(theme);
+  document.documentElement.setAttribute('data-theme', next);
+  try {
+    localStorage.setItem(THEME_KEY, next);
+  } catch (_) {}
+  const btn = $('#themeToggle');
+  if (!btn) return;
+  btn.textContent = next === 'dark' ? 'DARK' : 'LIGHT';
+  btn.setAttribute('aria-pressed', String(next === 'dark'));
+  btn.setAttribute('aria-label', next === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+}
+function initTheme() {
+  let saved = 'light';
+  try {
+    saved = normalizeTheme(localStorage.getItem(THEME_KEY));
+  } catch (_) {}
+  applyTheme(saved);
+}
 
 function fmt(n, d = 0) {
   if (n === null || n === undefined || Number.isNaN(Number(n))) return '—';
@@ -173,6 +203,10 @@ function renderRadar(markets) {
   const canvas = $('#radar');
   const ctx = canvas.getContext('2d');
   const tip = $('#radarTip');
+  const radarGrid = cssVar('--radar-grid') || 'rgba(27,36,64,.9)';
+  const radarLabel = cssVar('--radar-label') || 'rgba(169,179,214,.9)';
+  const radarMacro = cssVar('--radar-macro') || 'rgba(78,161,255,.95)';
+  const radarTech = cssVar('--radar-tech') || 'rgba(0,194,168,.95)';
 
   const ms = markets.filter(kindOk).filter(m => (m.spread ?? 0) > 0 && (m.volume24hr ?? 0) >= 0);
   const w = canvas.width, h = canvas.height;
@@ -198,7 +232,7 @@ function renderRadar(markets) {
   // background
   ctx.clearRect(0,0,w,h);
   ctx.save();
-  ctx.strokeStyle = 'rgba(27,36,64,.9)';
+  ctx.strokeStyle = radarGrid;
   ctx.lineWidth = 1;
 
   // grid
@@ -212,7 +246,7 @@ function renderRadar(markets) {
   }
 
   // axes labels
-  ctx.fillStyle = 'rgba(169,179,214,.9)';
+  ctx.fillStyle = radarLabel;
   ctx.font = '12px ui-sans-serif, system-ui';
   ctx.fillText('spread →', w-110, h-14);
   ctx.save();
@@ -227,7 +261,7 @@ function renderRadar(markets) {
     const y = yScale(m.volume24hr ?? 0);
     const r = 4 + Math.min(10, Math.abs(m.oneHourPriceChange ?? 0) * 1200);
     const kind = groupKind(m.group);
-    const color = kind === 'macro' ? 'rgba(78,161,255,.95)' : 'rgba(0,194,168,.95)';
+    const color = kind === 'macro' ? radarMacro : radarTech;
     return { x,y,r,color,m };
   });
 
@@ -259,11 +293,11 @@ function renderRadar(markets) {
     const m = p.m;
     tip.hidden = false;
     tip.innerHTML = `
-      <div style="font-weight:700;margin-bottom:4px">${m.question || m.slug || m.id}</div>
-      <div style="color:rgba(169,179,214,.9);font-size:11px;margin-bottom:6px">${m.group}</div>
+      <div class="tip-title">${m.question || m.slug || m.id}</div>
+      <div class="tip-group">${m.group}</div>
       <div>bid/ask <code>${fmt(m.bestBid,3)}/${fmt(m.bestAsk,3)}</code> · spread <code>${fmt(m.spread,3)}</code></div>
       <div>1h <code>${fmtPct(m.oneHourPriceChange)}</code> · vol24h <code>${fmt(m.volume24hr,0)}</code></div>
-      <div style="margin-top:6px"><a href="${m.url}" target="_blank" rel="noopener">open →</a></div>
+      <div class="tip-link"><a href="${m.url}" target="_blank" rel="noopener">open →</a></div>
     `;
 
     tip.style.left = `${Math.min(window.innerWidth-380, ev.clientX + 12)}px`;
@@ -300,11 +334,17 @@ async function load() {
       renderTable(markets);
     });
   });
+  $('#themeToggle').addEventListener('click', () => {
+    const next = currentTheme() === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    renderRadar(markets);
+  });
   $('#search').addEventListener('input', () => renderTable(markets));
   $('#sort').addEventListener('change', () => renderTable(markets));
 }
 
 setKind('all');
+initTheme();
 load().catch(err => {
   console.error(err);
   $('#lastUpdated').textContent = 'Failed to load data';

@@ -9,6 +9,7 @@ Static GitHub Pages dashboard that displays a read-only Polymarket scan.
   - `docs/data/latest.json`
   - `docs/data/history.jsonl` (append-only)
 - GitHub Pages serves `docs/` as the website.
+- The dashboard includes a topbar `Light/Dark` theme toggle (default: `Light`) and remembers your choice in `localStorage` (`pm_theme`).
 
 ## Local run
 
