@@ -3,14 +3,14 @@
  * Read-only Polymarket scan for GitHub Pages dashboard.
  *
  * - Reads ./watchlist.json
- * - Calls: polymarket -o json markets get <id>
+ * - Fetches market JSON from Polymarket Gamma API:
+ *     https://gamma-api.polymarket.com/markets/<id>
  * - Writes: docs/data/latest.json
  * - Appends: docs/data/history.jsonl (one JSON object per run)
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
 
 const ROOT = process.cwd();
 const WATCHLIST_PATH = path.join(ROOT, 'watchlist.json');
@@ -18,13 +18,7 @@ const OUT_DIR = path.join(ROOT, 'docs', 'data');
 const LATEST_PATH = path.join(OUT_DIR, 'latest.json');
 const HISTORY_PATH = path.join(OUT_DIR, 'history.jsonl');
 
-function sh(cmd) {
-  return execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
-}
-
-function safeJsonParse(s) {
-  try { return JSON.parse(s); } catch { return null; }
-}
+const GAMMA_BASE = 'https://gamma-api.polymarket.com';
 
 function toNum(x, d = null) {
   const n = Number(x);
@@ -35,11 +29,16 @@ function utcNowIso() {
   return new Date().toISOString();
 }
 
-function getMarket(id) {
-  const raw = sh(`polymarket -o json markets get ${id}`);
-  const m = safeJsonParse(raw);
-  if (!m) throw new Error(`Failed to parse JSON for market ${id}`);
-  return m;
+async function getMarket(id) {
+  const url = `${GAMMA_BASE}/markets/${id}`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'accept': 'application/json'
+    }
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+  return await res.json();
 }
 
 function summarizeMarket(m, group) {
@@ -78,10 +77,14 @@ function summarizeMarket(m, group) {
 function rankPanels(markets) {
   const ok = markets.filter(m => !m.error);
 
-  const topVol24 = [...ok].sort((a, b) => (b.volume24hr ?? 0) - (a.volume24hr ?? 0)).slice(0, 10);
+  const topVol24 = [...ok]
+    .sort((a, b) => (b.volume24hr ?? 0) - (a.volume24hr ?? 0))
+    .slice(0, 10);
+
   const topMove1h = [...ok]
     .sort((a, b) => Math.abs(b.oneHourPriceChange ?? 0) - Math.abs(a.oneHourPriceChange ?? 0))
     .slice(0, 10);
+
   const widestSpreads = [...ok]
     .filter(m => m.spread != null)
     .sort((a, b) => (b.spread ?? 0) - (a.spread ?? 0))
@@ -94,7 +97,7 @@ function ensureDir(p) {
   fs.mkdirSync(p, { recursive: true });
 }
 
-function main() {
+async function main() {
   const watch = JSON.parse(fs.readFileSync(WATCHLIST_PATH, 'utf8'));
   const groups = watch.groups || {};
 
@@ -102,7 +105,7 @@ function main() {
   for (const [group, ids] of Object.entries(groups)) {
     for (const id of ids) {
       try {
-        const m = getMarket(id);
+        const m = await getMarket(id);
         markets.push(summarizeMarket(m, group));
       } catch (e) {
         markets.push({ id: String(id), group, error: String(e) });
@@ -124,9 +127,11 @@ function main() {
   fs.writeFileSync(LATEST_PATH, JSON.stringify(payload, null, 2) + '\n');
   fs.appendFileSync(HISTORY_PATH, JSON.stringify({ at: payload.generatedAt, panels: payload.panels }) + '\n');
 
-  // Also print a short log for Actions
   const errCount = markets.filter(m => m.error).length;
   console.log(`Wrote ${path.relative(ROOT, LATEST_PATH)} with ${markets.length} markets (${errCount} errors)`);
 }
 
-main();
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

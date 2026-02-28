@@ -14,11 +14,12 @@ Static GitHub Pages dashboard that displays a read-only Polymarket scan.
 
 Prereqs:
 - Node 20+
-- `polymarket` CLI installed and reachable in PATH
 
 ```bash
 node scripts/scan.mjs
 ```
+
+(Uses the public Polymarket Gamma API; no CLI, no wallet, no secrets.)
 
 Then open:
 - `docs/index.html`
