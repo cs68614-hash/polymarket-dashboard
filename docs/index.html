@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Polymarket Macro+Tech Dashboard</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1>Polymarket Dashboard</h1>
+      <p class="sub">Macro data + Tech events · read-only scan · GitHub Actions scheduled</p>
+    </div>
+    <div class="meta">
+      <div>Last updated: <span id="lastUpdated">—</span></div>
+      <div class="filters">
+        <label><input type="checkbox" class="group" value="macro" checked /> macro</label>
+        <label><input type="checkbox" class="group" value="tech" checked /> tech</label>
+      </div>
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="panel">
+      <h2>Top vol24h</h2>
+      <div class="hint">Liquidity-first view</div>
+      <div id="panelVol" class="list"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Top |1h move|</h2>
+      <div class="hint">Possible info-driven dislocations</div>
+      <div id="panelMove" class="list"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Widest spreads</h2>
+      <div class="hint">Potential patience / posting opportunities (also may be thin)</div>
+      <div id="panelSpread" class="list"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div>
+      Data source: <code>polymarket</code> CLI → <code>docs/data/latest.json</code>
+    </div>
+  </footer>
+
+  <script src="./app.js" type="module"></script>
+</body>
+</html>
