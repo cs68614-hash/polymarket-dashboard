@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Polymarket Dashboard</title>
+  <title>Polymarket 仪表盘</title>
   <script>
     (function () {
       const key = 'pm_theme';
@@ -22,21 +22,21 @@
     <div class="brand">
       <div class="logo">PM</div>
       <div>
-        <div class="title">Polymarket Dashboard</div>
-        <div class="subtitle">Macro data + Tech events · opportunity cockpit</div>
+        <div class="title">Polymarket 仪表盘</div>
+        <div class="subtitle">宏观数据 + 科技事件 · 机会驾驶舱</div>
       </div>
     </div>
 
     <div class="topbar-right">
       <div class="meta">
-        <div class="meta-label">Last updated</div>
+        <div class="meta-label">更新时间</div>
         <div class="meta-value" id="lastUpdated">—</div>
       </div>
-      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch theme">LIGHT</button>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换主题">LIGHT</button>
       <div class="segmented" id="kindFilter">
-        <button class="seg active" data-kind="all">All</button>
-        <button class="seg" data-kind="macro">Macro</button>
-        <button class="seg" data-kind="tech">Tech</button>
+        <button class="seg active" data-kind="all">全部</button>
+        <button class="seg" data-kind="macro">宏观</button>
+        <button class="seg" data-kind="tech">科技</button>
       </div>
     </div>
   </header>
@@ -47,20 +47,20 @@
     <section class="card cpi-card" id="cpiConsistencyCard" hidden>
       <div class="card-h">
         <div>
-          <div class="card-title">CPI Distribution Consistency</div>
-          <div class="card-sub">macro_cpi_feb2026 mutually exclusive outcomes</div>
+          <div class="card-title">CPI 分布一致性</div>
+          <div class="card-sub">macro_cpi_feb2026 互斥结果校验</div>
         </div>
-        <div class="chip cpi-status" id="cpiStatusBadge">OK</div>
+        <div class="chip cpi-status" id="cpiStatusBadge">正常</div>
       </div>
       <div class="cpi-summary" id="cpiSummary"></div>
       <div class="cpi-table-wrap">
         <table class="cpi-table">
           <thead>
             <tr>
-              <th>Outcome</th>
-              <th>Bid/Ask</th>
-              <th>Mid</th>
-              <th>vol24h</th>
+              <th>结果</th>
+              <th>买/卖</th>
+              <th>中间价</th>
+              <th>24h成交量</th>
             </tr>
           </thead>
           <tbody id="cpiTableBody"></tbody>
@@ -72,8 +72,8 @@
       <section class="card">
         <div class="card-h">
           <div>
-            <div class="card-title">Alerts</div>
-            <div class="card-sub">Only what deserves attention (thresholded)</div>
+            <div class="card-title">告警</div>
+            <div class="card-sub">仅显示需关注项（阈值筛选）</div>
           </div>
           <div class="chip" id="alertCount">0</div>
         </div>
@@ -83,12 +83,12 @@
       <section class="card">
         <div class="card-h">
           <div>
-            <div class="card-title">Opportunity Radar</div>
-            <div class="card-sub">x=spread · y=vol24h (log) · size=|1h|</div>
+            <div class="card-title">机会雷达</div>
+            <div class="card-sub">x=点差 · y=24h成交量(log) · size=|1h|</div>
           </div>
           <div class="legend">
-            <span class="dot macro"></span> macro
-            <span class="dot tech"></span> tech
+            <span class="dot macro"></span> 宏观
+            <span class="dot tech"></span> 科技
           </div>
         </div>
         <canvas id="radar" width="900" height="520" class="radar"></canvas>
@@ -100,8 +100,8 @@
       <section class="card">
         <div class="card-h">
           <div>
-            <div class="card-title">Top vol24h</div>
-            <div class="card-sub">Liquidity-first view</div>
+            <div class="card-title">24h成交量 Top</div>
+            <div class="card-sub">优先看流动性</div>
           </div>
         </div>
         <div class="list" id="panelVol"></div>
@@ -110,8 +110,8 @@
       <section class="card">
         <div class="card-h">
           <div>
-            <div class="card-title">Top |1h move|</div>
-            <div class="card-sub">Possible info-driven dislocations</div>
+            <div class="card-title">|1h变动| Top</div>
+            <div class="card-sub">可能是信息驱动错位</div>
           </div>
         </div>
         <div class="list" id="panelMove"></div>
@@ -120,8 +120,8 @@
       <section class="card">
         <div class="card-h">
           <div>
-            <div class="card-title">Widest spreads</div>
-            <div class="card-sub">Patience/posting opportunities (or thin)</div>
+            <div class="card-title">最大点差</div>
+            <div class="card-sub">挂单机会（或流动性偏薄）</div>
           </div>
         </div>
         <div class="list" id="panelSpread"></div>
@@ -131,16 +131,16 @@
     <details class="card details">
       <summary>
         <div>
-          <div class="card-title">All markets</div>
-          <div class="card-sub">Search + sort + full context</div>
+          <div class="card-title">全部市场</div>
+          <div class="card-sub">搜索 + 排序 + 完整上下文</div>
         </div>
         <div class="right">
-          <input id="search" class="search" placeholder="Search (e.g., CPI, Tesla, GDP…)" />
+          <input id="search" class="search" placeholder="搜索（如 CPI、Tesla、GDP…）" />
           <select id="sort" class="select">
-            <option value="vol24h">Sort: vol24h</option>
-            <option value="spread">Sort: spread</option>
-            <option value="absMove1h">Sort: |1h move|</option>
-            <option value="endDate">Sort: endDate</option>
+            <option value="vol24h">按 24h 成交量</option>
+            <option value="spread">按 点差</option>
+            <option value="absMove1h">按 |1h 变动|</option>
+            <option value="endDate">按 到期时间</option>
           </select>
         </div>
       </summary>
@@ -148,7 +148,7 @@
     </details>
 
     <footer class="footer">
-      <div>Data: <code>docs/data/latest.json</code> (generated by GitHub Actions schedule)</div>
+      <div>数据：<code>docs/data/latest.json</code>（由 GitHub Actions 定时生成）</div>
     </footer>
   </main>
 

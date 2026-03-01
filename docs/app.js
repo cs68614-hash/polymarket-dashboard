@@ -22,7 +22,7 @@ function applyTheme(theme) {
   if (!btn) return;
   btn.textContent = next === 'dark' ? 'DARK' : 'LIGHT';
   btn.setAttribute('aria-pressed', String(next === 'dark'));
-  btn.setAttribute('aria-label', next === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  btn.setAttribute('aria-label', next === 'dark' ? '切换到浅色主题' : '切换到深色主题');
 }
 function initTheme() {
   let saved = 'light';
@@ -114,12 +114,12 @@ function rowHtml(m, rightLines = []) {
       <div class="qline"><a href="${m.url}" target="_blank" rel="noopener">${title}</a></div>
       <div class="badges">
         ${badge(m.group)}
-        ${end ? badge('end:' + end) : ''}
+        ${end ? badge('到期:' + end) : ''}
       </div>
     </div>
     <div class="kvs">
-      <div class="kv">bid/ask <code>${fmt(m.bestBid,3)}/${fmt(m.bestAsk,3)}</code></div>
-      <div class="kv">spread <code>${fmt(m.spread,3)}</code></div>
+      <div class="kv">买/卖 <code>${fmt(m.bestBid,3)}/${fmt(m.bestAsk,3)}</code></div>
+      <div class="kv">点差 <code>${fmt(m.spread,3)}</code></div>
       ${rightLines.map(x => `<div class="kv">${x}</div>`).join('')}
     </div>
   </div>`;
@@ -128,11 +128,11 @@ function rowHtml(m, rightLines = []) {
 function alertTags(m) {
   const t = CONFIG.thresholds;
   const tags = [];
-  if ((m.spread ?? 0) >= t.spread) tags.push({ txt: `WIDE SPREAD ≥ ${t.spread}`, cls: 'yellow' });
-  if (Math.abs(m.oneHourPriceChange ?? 0) >= t.absMove1h) tags.push({ txt: `FAST MOVE |1h| ≥ ${(t.absMove1h*100).toFixed(2)}%`, cls: 'red' });
-  if ((m.volume24hr ?? 0) >= t.vol24h) tags.push({ txt: `LIQUID vol24h ≥ ${t.vol24h}`, cls: 'green' });
+  if ((m.spread ?? 0) >= t.spread) tags.push({ txt: `点差偏宽 ≥ ${t.spread}`, cls: 'yellow' });
+  if (Math.abs(m.oneHourPriceChange ?? 0) >= t.absMove1h) tags.push({ txt: `快速变动 |1h| ≥ ${(t.absMove1h*100).toFixed(2)}%`, cls: 'red' });
+  if ((m.volume24hr ?? 0) >= t.vol24h) tags.push({ txt: `流动性高 24h成交量 ≥ ${t.vol24h}`, cls: 'green' });
   const d = daysToEnd(m.endDate);
-  if (d != null && d <= t.daysToEnd) tags.push({ txt: `EVENT SOON ≤ ${t.daysToEnd}d`, cls: 'yellow' });
+  if (d != null && d <= t.daysToEnd) tags.push({ txt: `临近到期 ≤ ${t.daysToEnd}天`, cls: 'yellow' });
   return tags;
 }
 
@@ -148,7 +148,7 @@ function renderAlerts(markets) {
   $('#alertCount').textContent = String(alerts.length);
 
   if (!alerts.length) {
-    $('#alerts').innerHTML = `<div class="alert"><div><div class="q">No alerts under current thresholds.</div><div class="tags"><span class="tag">Try switching Macro/Tech/All</span></div></div></div>`;
+    $('#alerts').innerHTML = `<div class="alert"><div><div class="q">当前阈值下暂无告警。</div><div class="tags"><span class="tag">可切换 全部/宏观/科技</span></div></div></div>`;
     return;
   }
 
@@ -164,10 +164,10 @@ function renderAlerts(markets) {
           </div>
         </div>
         <div class="kvs">
-          <div class="kv">bid/ask <code>${fmt(m.bestBid,3)}/${fmt(m.bestAsk,3)}</code></div>
-          <div class="kv">spread <code>${fmt(m.spread,3)}</code></div>
+          <div class="kv">买/卖 <code>${fmt(m.bestBid,3)}/${fmt(m.bestAsk,3)}</code></div>
+          <div class="kv">点差 <code>${fmt(m.spread,3)}</code></div>
           <div class="kv">1h <code>${fmtPct(m.oneHourPriceChange)}</code></div>
-          <div class="kv">vol24h <code>${fmt(m.volume24hr,0)}</code></div>
+          <div class="kv">24h成交量 <code>${fmt(m.volume24hr,0)}</code></div>
         </div>
       </div>`;
   }).join('');
@@ -180,9 +180,9 @@ function renderPanels(data) {
     spread: (data.panels?.widestSpreads || []).filter(kindOk)
   };
 
-  $('#panelVol').innerHTML = ks.vol.map(m => rowHtml(m, [`vol24h <code>${fmt(m.volume24hr,0)}</code>`])).join('') || '';
+  $('#panelVol').innerHTML = ks.vol.map(m => rowHtml(m, [`24h成交量 <code>${fmt(m.volume24hr,0)}</code>`])).join('') || '';
   $('#panelMove').innerHTML = ks.move.map(m => rowHtml(m, [`1h <code>${fmtPct(m.oneHourPriceChange)}</code>`, `1d <code>${fmtPct(m.oneDayPriceChange)}</code>`])).join('') || '';
-  $('#panelSpread').innerHTML = ks.spread.map(m => rowHtml(m, [`vol24h <code>${fmt(m.volume24hr,0)}</code>`])).join('') || '';
+  $('#panelSpread').innerHTML = ks.spread.map(m => rowHtml(m, [`24h成交量 <code>${fmt(m.volume24hr,0)}</code>`])).join('') || '';
 }
 
 function renderKpis(markets) {
@@ -194,12 +194,12 @@ function renderKpis(markets) {
   const alertsCount = m.map(x => alertTags(x)).filter(t => t.length).length;
 
   $('#kpis').innerHTML = [
-    kpiHtml('Scanned', `${m.length}`, 'markets in view'),
-    kpiHtml('Alerts', `${alertsCount}`, `thresholded signals`),
-    kpiHtml('Top vol24h', topVol ? fmt(topVol.volume24hr,0) : '—', topVol ? (topVol.question || topVol.slug || topVol.id) : ''),
-    kpiHtml('Max |1h|', maxMove ? fmtPct(maxMove.oneHourPriceChange) : '—', maxMove ? (maxMove.question || maxMove.slug || maxMove.id) : ''),
-    kpiHtml('Max spread', maxSpread ? fmt(maxSpread.spread,3) : '—', maxSpread ? (maxSpread.question || maxSpread.slug || maxSpread.id) : ''),
-    kpiHtml('Mode', getKind().toUpperCase(), 'macro / tech filter')
+    kpiHtml('扫描数', `${m.length}`, '当前视图市场数'),
+    kpiHtml('告警数', `${alertsCount}`, '阈值筛选信号'),
+    kpiHtml('24h最大成交量', topVol ? fmt(topVol.volume24hr,0) : '—', topVol ? (topVol.question || topVol.slug || topVol.id) : ''),
+    kpiHtml('最大|1h|', maxMove ? fmtPct(maxMove.oneHourPriceChange) : '—', maxMove ? (maxMove.question || maxMove.slug || maxMove.id) : ''),
+    kpiHtml('最大点差', maxSpread ? fmt(maxSpread.spread,3) : '—', maxSpread ? (maxSpread.question || maxSpread.slug || maxSpread.id) : ''),
+    kpiHtml('模式', getKind() === 'all' ? '全部' : (getKind() === 'macro' ? '宏观' : '科技'), '宏观 / 科技过滤')
   ].join('');
 }
 
@@ -234,21 +234,28 @@ function renderCpiConsistency(markets) {
   const sumMid = orderedRows.reduce((acc, r) => acc + (r.mid ?? 0), 0);
   const sumAsk = orderedRows.reduce((acc, r) => acc + (r.bestAsk ?? 0), 0);
   const sumBid = orderedRows.reduce((acc, r) => acc + (r.bestBid ?? 0), 0);
+  const buyAllCostAsk = sumAsk;
+  const theoreticalEdge = 1 - sumAsk;
 
   const warnMid = Math.abs(1 - sumMid) > 0.02;
   const warnAsk = sumAsk < 0.99;
   const inconsistent = warnMid || warnAsk;
 
-  const badge = $('#cpiStatusBadge');
-  badge.classList.remove('ok', 'warning');
-  badge.classList.add(inconsistent ? 'warning' : 'ok');
-  badge.textContent = inconsistent ? 'WARNING' : 'OK';
+  const statusBadge = $('#cpiStatusBadge');
+  statusBadge.classList.remove('ok', 'warning');
+  statusBadge.classList.add(inconsistent ? 'warning' : 'ok');
+  statusBadge.textContent = inconsistent ? '告警' : '正常';
 
-  const reasons = [];
-  if (warnMid) reasons.push(`sumMid=${fmt(sumMid,3)}`);
-  if (warnAsk) reasons.push(`sumAsk=${fmt(sumAsk,3)}`);
-  const lead = inconsistent ? reasons.join(' · ') : `sumMid=${fmt(sumMid,3)} · sumAsk=${fmt(sumAsk,3)} · sumBid=${fmt(sumBid,3)}`;
-  $('#cpiSummary').textContent = `${lead}`;
+  const metrics = `sumMid=${fmt(sumMid,3)} · sumBid=${fmt(sumBid,3)} · sumAsk=${fmt(sumAsk,3)} · buyAllCostAsk=${fmt(buyAllCostAsk,3)} · theoreticalEdge=${fmt(theoreticalEdge,3)}`;
+  let summary = '';
+  if (warnAsk) {
+    summary = `可能存在买全套利：按ASK买全成本=${fmt(buyAllCostAsk,3)}，理论毛利=${fmt(theoreticalEdge,3)}（未计手续费/滑点/成交不完整） · ${metrics}`;
+  } else if (warnMid) {
+    summary = `分布不一致：sumMid=${fmt(sumMid,3)}（可能流动性不足/盘口失真） · ${metrics}`;
+  } else {
+    summary = `分布正常：${metrics}`;
+  }
+  $('#cpiSummary').textContent = summary;
 
   $('#cpiTableBody').innerHTML = orderedRows.map(r => `
     <tr>
@@ -278,7 +285,7 @@ function renderTable(markets) {
 
   $('#table').innerHTML = rows.map(m => rowHtml(m, [
     `1h <code>${fmtPct(m.oneHourPriceChange)}</code>`,
-    `vol24h <code>${fmt(m.volume24hr,0)}</code>`
+    `24h成交量 <code>${fmt(m.volume24hr,0)}</code>`
   ])).join('');
 }
 
@@ -331,11 +338,11 @@ function renderRadar(markets) {
   // axes labels
   ctx.fillStyle = radarLabel;
   ctx.font = '12px ui-sans-serif, system-ui';
-  ctx.fillText('spread →', w-110, h-14);
+  ctx.fillText('点差 →', w-90, h-14);
   ctx.save();
-  ctx.translate(12, 140);
+  ctx.translate(12, 170);
   ctx.rotate(-Math.PI/2);
-  ctx.fillText('vol24h (log) →', 0, 0);
+  ctx.fillText('24h成交量(log) →', 0, 0);
   ctx.restore();
 
   // points
@@ -378,9 +385,9 @@ function renderRadar(markets) {
     tip.innerHTML = `
       <div class="tip-title">${m.question || m.slug || m.id}</div>
       <div class="tip-group">${m.group}</div>
-      <div>bid/ask <code>${fmt(m.bestBid,3)}/${fmt(m.bestAsk,3)}</code> · spread <code>${fmt(m.spread,3)}</code></div>
-      <div>1h <code>${fmtPct(m.oneHourPriceChange)}</code> · vol24h <code>${fmt(m.volume24hr,0)}</code></div>
-      <div class="tip-link"><a href="${m.url}" target="_blank" rel="noopener">open →</a></div>
+      <div>买/卖 <code>${fmt(m.bestBid,3)}/${fmt(m.bestAsk,3)}</code> · 点差 <code>${fmt(m.spread,3)}</code></div>
+      <div>1h <code>${fmtPct(m.oneHourPriceChange)}</code> · 24h成交量 <code>${fmt(m.volume24hr,0)}</code></div>
+      <div class="tip-link"><a href="${m.url}" target="_blank" rel="noopener">打开 →</a></div>
     `;
 
     tip.style.left = `${Math.min(window.innerWidth-380, ev.clientX + 12)}px`;
@@ -431,5 +438,5 @@ setKind('all');
 initTheme();
 load().catch(err => {
   console.error(err);
-  $('#lastUpdated').textContent = 'Failed to load data';
+  $('#lastUpdated').textContent = '加载数据失败';
 });
