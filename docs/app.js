@@ -54,6 +54,30 @@ function daysToEnd(endDate) {
   return d;
 }
 
+const CPI_GROUP = 'macro_cpi_feb2026';
+const CPI_OUTCOME_ORDER = ['≤2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '≥2.7'];
+
+function parseCpiOutcomeLabel(question) {
+  const q = String(question || '');
+  if (q.includes('≤2.1%')) return '≤2.1';
+  if (q.includes('≥2.7%')) return '≥2.7';
+  const m = q.match(/\b(2\.[2-6])%/);
+  return m ? m[1] : null;
+}
+
+function toNumOrNull(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function midPrice(market) {
+  const bid = toNumOrNull(market.bestBid);
+  const ask = toNumOrNull(market.bestAsk);
+  if (bid != null && ask != null) return (bid + ask) / 2;
+  const last = toNumOrNull(market.lastTradePrice);
+  return last;
+}
+
 function setKind(kind) {
   const btns = [...document.querySelectorAll('#kindFilter .seg')];
   btns.forEach(b => b.classList.toggle('active', b.dataset.kind === kind));
@@ -177,6 +201,65 @@ function renderKpis(markets) {
     kpiHtml('Max spread', maxSpread ? fmt(maxSpread.spread,3) : '—', maxSpread ? (maxSpread.question || maxSpread.slug || maxSpread.id) : ''),
     kpiHtml('Mode', getKind().toUpperCase(), 'macro / tech filter')
   ].join('');
+}
+
+function renderCpiConsistency(markets) {
+  const card = $('#cpiConsistencyCard');
+  if (!card) return;
+
+  const rows = markets
+    .filter(m => m.group === CPI_GROUP)
+    .map(m => {
+      const label = parseCpiOutcomeLabel(m.question);
+      return {
+        label,
+        bestBid: toNumOrNull(m.bestBid),
+        bestAsk: toNumOrNull(m.bestAsk),
+        mid: midPrice(m),
+        vol24h: toNumOrNull(m.volume24hr)
+      };
+    })
+    .filter(r => r.label);
+
+  if (!rows.length) {
+    card.hidden = true;
+    return;
+  }
+
+  const byLabel = new Map();
+  for (const label of CPI_OUTCOME_ORDER) byLabel.set(label, null);
+  for (const row of rows) byLabel.set(row.label, row);
+  const orderedRows = CPI_OUTCOME_ORDER.map(label => byLabel.get(label) || { label, bestBid: null, bestAsk: null, mid: null, vol24h: null });
+
+  const sumMid = orderedRows.reduce((acc, r) => acc + (r.mid ?? 0), 0);
+  const sumAsk = orderedRows.reduce((acc, r) => acc + (r.bestAsk ?? 0), 0);
+  const sumBid = orderedRows.reduce((acc, r) => acc + (r.bestBid ?? 0), 0);
+
+  const warnMid = Math.abs(1 - sumMid) > 0.02;
+  const warnAsk = sumAsk < 0.99;
+  const inconsistent = warnMid || warnAsk;
+
+  const badge = $('#cpiStatusBadge');
+  badge.classList.remove('ok', 'warning');
+  badge.classList.add(inconsistent ? 'warning' : 'ok');
+  badge.textContent = inconsistent ? 'WARNING' : 'OK';
+
+  const reasons = [];
+  if (warnMid) reasons.push(`sumMid=${fmt(sumMid,3)}`);
+  if (warnAsk) reasons.push(`sumAsk=${fmt(sumAsk,3)}`);
+  const lead = inconsistent ? reasons.join(' · ') : `sumMid=${fmt(sumMid,3)} · sumAsk=${fmt(sumAsk,3)} · sumBid=${fmt(sumBid,3)}`;
+  $('#cpiSummary').textContent = `${lead}`;
+
+  $('#cpiTableBody').innerHTML = orderedRows.map(r => `
+    <tr>
+      <td>${r.label}</td>
+      <td><code>${fmt(r.bestBid,3)}/${fmt(r.bestAsk,3)}</code></td>
+      <td><code>${fmt(r.mid,3)}</code></td>
+      <td><code>${fmt(r.vol24h,0)}</code></td>
+    </tr>
+  `).join('');
+
+  card.hidden = false;
 }
 
 function renderTable(markets) {
@@ -318,6 +401,7 @@ async function load() {
 
   // render all
   renderKpis(markets);
+  renderCpiConsistency(markets);
   renderAlerts(markets);
   renderPanels(data);
   renderRadar(markets);

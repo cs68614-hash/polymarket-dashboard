@@ -10,6 +10,7 @@ Static GitHub Pages dashboard that displays a read-only Polymarket scan.
   - `docs/data/history.jsonl` (append-only)
 - GitHub Pages serves `docs/` as the website.
 - The dashboard includes a topbar `Light/Dark` theme toggle (default: `Light`) and remembers your choice in `localStorage` (`pm_theme`).
+- The dashboard includes a CPI distribution consistency card for `macro_cpi_feb2026` that checks summed bid/ask/mid probabilities across mutually exclusive CPI outcomes.
 
 ## Local run
 

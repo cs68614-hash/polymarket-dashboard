@@ -44,6 +44,30 @@
   <main class="container">
     <section class="kpis" id="kpis"></section>
 
+    <section class="card cpi-card" id="cpiConsistencyCard" hidden>
+      <div class="card-h">
+        <div>
+          <div class="card-title">CPI Distribution Consistency</div>
+          <div class="card-sub">macro_cpi_feb2026 mutually exclusive outcomes</div>
+        </div>
+        <div class="chip cpi-status" id="cpiStatusBadge">OK</div>
+      </div>
+      <div class="cpi-summary" id="cpiSummary"></div>
+      <div class="cpi-table-wrap">
+        <table class="cpi-table">
+          <thead>
+            <tr>
+              <th>Outcome</th>
+              <th>Bid/Ask</th>
+              <th>Mid</th>
+              <th>vol24h</th>
+            </tr>
+          </thead>
+          <tbody id="cpiTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="grid2">
       <section class="card">
         <div class="card-h">
