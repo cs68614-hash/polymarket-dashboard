@@ -70,6 +70,196 @@ function toNumOrNull(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+// --- My model (local, manual) ---
+const MY_MODEL_KEY = 'pm_my_model_v1';
+function safeJsonParse(s, fallback) {
+  try { return JSON.parse(s); } catch (_) { return fallback; }
+}
+function clamp01(x) {
+  const n = Number(x);
+  if (!Number.isFinite(n)) return null;
+  return Math.max(0, Math.min(1, n));
+}
+function triMean(a, b, c) {
+  return (a + b + c) / 3;
+}
+// Triangular CDF
+function triCdf(x, a, b, c) {
+  if (x <= a) return 0;
+  if (x >= c) return 1;
+  if (x <= b) return ((x - a) * (x - a)) / ((b - a) * (c - a));
+  return 1 - ((c - x) * (c - x)) / ((c - a) * (c - b));
+}
+function triTailProb(x, a, b, c) {
+  return 1 - triCdf(x, a, b, c);
+}
+function pct(x, d = 1) {
+  if (x == null) return '—';
+  return (x * 100).toFixed(d) + '%';
+}
+function price(x, d = 3) {
+  if (x == null) return '—';
+  return Number(x).toFixed(d);
+}
+function loadMyModelState() {
+  const raw = localStorage.getItem(MY_MODEL_KEY);
+  return safeJsonParse(raw, { selectedId: '', low: '', base: '', high: '', entry: '' });
+}
+function saveMyModelState(st) {
+  localStorage.setItem(MY_MODEL_KEY, JSON.stringify(st));
+}
+
+function renderMyModel(markets) {
+  const host = $('#myModel');
+  if (!host) return;
+
+  const st = loadMyModelState();
+  const options = markets
+    .filter(kindOk)
+    .slice()
+    .sort((a,b) => String(a.group||'').localeCompare(String(b.group||'')) || String(a.question||'').localeCompare(String(b.question||'')))
+    .map(m => {
+      const title = (m.question || m.slug || m.id);
+      const label = `${m.group} · ${title}`;
+      return `<option value="${m.id}">${label}</option>`;
+    })
+    .join('');
+
+  host.innerHTML = `
+    <div class="mm-row">
+      <label>选择市场
+        <select id="mmSelect">
+          <option value="">（请选择）</option>
+          ${options}
+        </select>
+      </label>
+    </div>
+
+    <div class="mm-row">
+      <label>p_low
+        <input id="mmLow" inputmode="decimal" placeholder="如 0.10" />
+      </label>
+      <label>p_base
+        <input id="mmBase" inputmode="decimal" placeholder="如 0.30" />
+      </label>
+      <label>p_high
+        <input id="mmHigh" inputmode="decimal" placeholder="如 0.40" />
+      </label>
+      <label>挂单价（可选）
+        <input id="mmEntry" inputmode="decimal" placeholder="如 0.008" />
+      </label>
+      <div class="mm-actions">
+        <button id="mmSave" type="button">保存</button>
+        <button id="mmClear" type="button">清空</button>
+      </div>
+    </div>
+
+    <div class="mm-out" id="mmOut">选择一个市场并填写区间概率（0~1），我会给出：均值、认为市场低估的概率、以及一个保守挂单建议。</div>
+  `;
+
+  const sel = $('#mmSelect');
+  const lowEl = $('#mmLow');
+  const baseEl = $('#mmBase');
+  const highEl = $('#mmHigh');
+  const entryEl = $('#mmEntry');
+  const out = $('#mmOut');
+
+  const byId = new Map(markets.map(m => [String(m.id), m]));
+
+  function getInputs() {
+    const id = String(sel.value || '');
+    const low = clamp01(lowEl.value);
+    const base = clamp01(baseEl.value);
+    const high = clamp01(highEl.value);
+    const entry = clamp01(entryEl.value);
+    return { id, low, base, high, entry };
+  }
+
+  function computeAndRender() {
+    const { id, low, base, high, entry } = getInputs();
+    if (!id) {
+      out.textContent = '请选择一个市场。';
+      return;
+    }
+    const m = byId.get(id);
+    if (!m) {
+      out.textContent = '未找到该市场数据。';
+      return;
+    }
+
+    const pMkt = toNumOrNull(m.bestAsk) ?? toNumOrNull(m.lastTradePrice) ?? null;
+
+    if (low == null || base == null || high == null) {
+      out.innerHTML = `市场价格参考（ASK）: <code>${price(pMkt, 3)}</code>。请填写 p_low/p_base/p_high（0~1）。`;
+      return;
+    }
+    // basic validation
+    const a = Math.min(low, base, high);
+    const c = Math.max(low, base, high);
+    const b = base; // treat base as mode
+    if (!(a <= b && b <= c) || a === c) {
+      out.textContent = '请保证 p_low ≤ p_base ≤ p_high，且区间有宽度。';
+      return;
+    }
+
+    const mean = triMean(a, b, c);
+    const tail = (pMkt == null) ? null : triTailProb(pMkt, a, b, c);
+    const edgeMean = (pMkt == null) ? null : (mean - pMkt);
+
+    // conservative entry suggestion: min(p_low, 0.6 * p_mkt)
+    const suggested = (pMkt == null) ? null : Math.min(a, 0.6 * pMkt);
+
+    const entryTxt = (entry != null)
+      ? `你的挂单价：<code>${price(entry, 3)}</code>`
+      : `建议挂单价（保守）：<code>${price(suggested, 3)}</code>（= min(p_low, 0.6×p_mkt)）`;
+
+    out.innerHTML = `
+      <div>市场：<a href="${m.url}" target="_blank" rel="noopener">${m.question || m.slug || m.id}</a></div>
+      <div>市场价格参考（ASK）：<code>${price(pMkt, 3)}</code> · 点差：<code>${fmt(m.spread, 3)}</code> · 24h成交量：<code>${fmt(m.volume24hr, 0)}</code></div>
+      <div>你的区间：<code>${pct(a,1)} / ${pct(b,1)} / ${pct(c,1)}</code> · 均值：<code>${pct(mean,1)}</code></div>
+      <div>你认为“市场低估”(p > p_mkt) 的概率：<code>${tail == null ? '—' : pct(tail, 0)}</code> · 期望 edge（均值 - p_mkt）：<code>${edgeMean == null ? '—' : pct(edgeMean, 1)}</code></div>
+      <div>${entryTxt}</div>
+      <div style="margin-top:6px;color:var(--muted2)">提示：这不是自动交易；它只是把直觉标准化，便于做挂单与复盘（Brier）。</div>
+    `;
+  }
+
+  // restore state
+  sel.value = st.selectedId || '';
+  lowEl.value = st.low || '';
+  baseEl.value = st.base || '';
+  highEl.value = st.high || '';
+  entryEl.value = st.entry || '';
+  computeAndRender();
+
+  sel.addEventListener('change', () => {
+    const next = loadMyModelState();
+    next.selectedId = sel.value;
+    saveMyModelState(next);
+    computeAndRender();
+  });
+  [lowEl, baseEl, highEl, entryEl].forEach(el => el.addEventListener('input', computeAndRender));
+
+  $('#mmSave').addEventListener('click', () => {
+    const next = loadMyModelState();
+    next.selectedId = sel.value;
+    next.low = lowEl.value;
+    next.base = baseEl.value;
+    next.high = highEl.value;
+    next.entry = entryEl.value;
+    saveMyModelState(next);
+    computeAndRender();
+  });
+  $('#mmClear').addEventListener('click', () => {
+    saveMyModelState({ selectedId: '', low: '', base: '', high: '', entry: '' });
+    sel.value = '';
+    lowEl.value = '';
+    baseEl.value = '';
+    highEl.value = '';
+    entryEl.value = '';
+    computeAndRender();
+  });
+}
+
 function midPrice(market) {
   const bid = toNumOrNull(market.bestBid);
   const ask = toNumOrNull(market.bestAsk);
@@ -410,6 +600,7 @@ async function load() {
   renderKpis(markets);
   renderCpiConsistency(markets);
   renderAlerts(markets);
+  renderMyModel(markets);
   renderPanels(data);
   renderRadar(markets);
   renderTable(markets);

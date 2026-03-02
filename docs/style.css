@@ -164,4 +164,16 @@ a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
 .select{padding:10px 10px;border-radius:12px;border:1px solid var(--stroke);background:var(--panel-solid);color:var(--text)}
 .table{margin-top:10px}
 
+.my-model{display:flex;flex-direction:column;gap:10px}
+.my-model .mm-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.my-model label{font-size:11px;color:var(--muted2);display:flex;flex-direction:column;gap:4px}
+.my-model input,.my-model select{padding:10px 10px;border-radius:12px;border:1px solid var(--stroke);background:var(--panel-solid);color:var(--text)}
+.my-model input{width:140px}
+.my-model select{min-width:240px;max-width:100%}
+.my-model .mm-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.my-model button{border:1px solid var(--stroke);background:var(--panel-solid);color:var(--text);padding:10px 12px;border-radius:12px;font-size:12px;font-weight:650;cursor:pointer}
+.my-model button:hover{background:var(--seg-active-bg)}
+.my-model .mm-out{font-size:12px;color:var(--muted);line-height:1.45}
+.my-model .mm-out code{color:var(--text)}
+
 .footer{margin-top:14px;color:var(--muted2);font-size:12px}
