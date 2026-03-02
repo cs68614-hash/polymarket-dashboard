@@ -73,7 +73,15 @@ function toNumOrNull(v) {
 // --- My model (local, manual) ---
 const MY_MODEL_KEY = 'pm_my_model_v1';
 function safeJsonParse(s, fallback) {
-  try { return JSON.parse(s); } catch (_) { return fallback; }
+  try {
+    const v = JSON.parse(s);
+    return v;
+  } catch (_) {
+    return fallback;
+  }
+}
+function isPlainObject(x) {
+  return x != null && typeof x === 'object' && !Array.isArray(x);
 }
 function clamp01(x) {
   const n = Number(x);
@@ -102,8 +110,18 @@ function price(x, d = 3) {
   return Number(x).toFixed(d);
 }
 function loadMyModelState() {
+  const fallback = { selectedId: '', low: '', base: '', high: '', entry: '' };
   const raw = localStorage.getItem(MY_MODEL_KEY);
-  return safeJsonParse(raw, { selectedId: '', low: '', base: '', high: '', entry: '' });
+  const v = safeJsonParse(raw, fallback);
+  // Guard: localStorage may contain literal `null` or other unexpected types.
+  if (!isPlainObject(v)) return fallback;
+  return {
+    selectedId: String(v.selectedId || ''),
+    low: String(v.low || ''),
+    base: String(v.base || ''),
+    high: String(v.high || ''),
+    entry: String(v.entry || '')
+  };
 }
 function saveMyModelState(st) {
   localStorage.setItem(MY_MODEL_KEY, JSON.stringify(st));
