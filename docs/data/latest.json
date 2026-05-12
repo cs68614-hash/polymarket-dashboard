@@ -1,6 +1,6 @@
 {
   "schema": "polymarket.dashboard.latest.v1",
-  "generatedAt": "2026-05-12T10:02:30.673Z",
+  "generatedAt": "2026-05-12T15:57:24.482Z",
   "watchlistGeneratedAt": "2026-02-28",
   "markets": [
     {
@@ -237,12 +237,12 @@
       "bestAsk": 0.007,
       "spread": 0.001,
       "lastTradePrice": 0.006,
-      "oneHourPriceChange": 0.001,
-      "oneDayPriceChange": 0.0005,
-      "volume24hr": 112835.21224600001,
-      "volume1wk": 318066.3577609999,
-      "volume1mo": 1580299.7053570002,
-      "liquidityNum": 216126.38132,
+      "oneHourPriceChange": -0.001,
+      "oneDayPriceChange": -0.0005,
+      "volume24hr": 211771.49519399996,
+      "volume1wk": 430399.4140389998,
+      "volume1mo": 1695163.4535380006,
+      "liquidityNum": 135728.13017,
       "url": "https://polymarket.com/market/jerome-powell-out-as-fed-chair-by-may-14-2026"
     },
     {
@@ -372,12 +372,12 @@
         "bestAsk": 0.007,
         "spread": 0.001,
         "lastTradePrice": 0.006,
-        "oneHourPriceChange": 0.001,
-        "oneDayPriceChange": 0.0005,
-        "volume24hr": 112835.21224600001,
-        "volume1wk": 318066.3577609999,
-        "volume1mo": 1580299.7053570002,
-        "liquidityNum": 216126.38132,
+        "oneHourPriceChange": -0.001,
+        "oneDayPriceChange": -0.0005,
+        "volume24hr": 211771.49519399996,
+        "volume1wk": 430399.4140389998,
+        "volume1mo": 1695163.4535380006,
+        "liquidityNum": 135728.13017,
         "url": "https://polymarket.com/market/jerome-powell-out-as-fed-chair-by-may-14-2026"
       },
       {
@@ -704,12 +704,12 @@
         "bestAsk": 0.007,
         "spread": 0.001,
         "lastTradePrice": 0.006,
-        "oneHourPriceChange": 0.001,
-        "oneDayPriceChange": 0.0005,
-        "volume24hr": 112835.21224600001,
-        "volume1wk": 318066.3577609999,
-        "volume1mo": 1580299.7053570002,
-        "liquidityNum": 216126.38132,
+        "oneHourPriceChange": -0.001,
+        "oneDayPriceChange": -0.0005,
+        "volume24hr": 211771.49519399996,
+        "volume1wk": 430399.4140389998,
+        "volume1mo": 1695163.4535380006,
+        "liquidityNum": 135728.13017,
         "url": "https://polymarket.com/market/jerome-powell-out-as-fed-chair-by-may-14-2026"
       },
       {
