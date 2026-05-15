@@ -1,6 +1,6 @@
 {
   "schema": "polymarket.dashboard.latest.v1",
-  "generatedAt": "2026-05-15T05:07:23.989Z",
+  "generatedAt": "2026-05-15T10:01:13.885Z",
   "watchlistGeneratedAt": "2026-02-28",
   "markets": [
     {
@@ -230,8 +230,8 @@
       "question": "Jerome Powell out as Fed Chair by May 14, 2026?",
       "endDate": "2026-05-14T00:00:00Z",
       "active": true,
-      "closed": false,
-      "acceptingOrders": true,
+      "closed": true,
+      "acceptingOrders": false,
       "restricted": true,
       "bestBid": null,
       "bestAsk": 0.001,
@@ -239,10 +239,10 @@
       "lastTradePrice": 0.001,
       "oneHourPriceChange": 0,
       "oneDayPriceChange": -0.006,
-      "volume24hr": 234729.97066500006,
-      "volume1wk": 749913.594956,
-      "volume1mo": 2097197.6660040007,
-      "liquidityNum": 234620.14544,
+      "volume24hr": 214563.08321599997,
+      "volume1wk": 758051.615247,
+      "volume1mo": 2113689.515850001,
+      "liquidityNum": 0,
       "url": "https://polymarket.com/market/jerome-powell-out-as-fed-chair-by-may-14-2026"
     },
     {
@@ -365,8 +365,8 @@
         "question": "Jerome Powell out as Fed Chair by May 14, 2026?",
         "endDate": "2026-05-14T00:00:00Z",
         "active": true,
-        "closed": false,
-        "acceptingOrders": true,
+        "closed": true,
+        "acceptingOrders": false,
         "restricted": true,
         "bestBid": null,
         "bestAsk": 0.001,
@@ -374,10 +374,10 @@
         "lastTradePrice": 0.001,
         "oneHourPriceChange": 0,
         "oneDayPriceChange": -0.006,
-        "volume24hr": 234729.97066500006,
-        "volume1wk": 749913.594956,
-        "volume1mo": 2097197.6660040007,
-        "liquidityNum": 234620.14544,
+        "volume24hr": 214563.08321599997,
+        "volume1wk": 758051.615247,
+        "volume1mo": 2113689.515850001,
+        "liquidityNum": 0,
         "url": "https://polymarket.com/market/jerome-powell-out-as-fed-chair-by-may-14-2026"
       },
       {
